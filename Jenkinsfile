@@ -1,23 +1,39 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "thekingmus/jenkins-demo"
+    }
+
     stages {
+
         stage('Checkout') {
             steps {
-                echo "Pulling code from GitHub..."
                 checkout scm
             }
         }
 
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
-                echo "Building the app..."
+                script {
+                    sh "docker build -t ${IMAGE_NAME}:latest ."
+                }
             }
         }
 
-        stage('Test') {
+        stage('Login to Docker Hub') {
             steps {
-                echo "Running tests..."
+                withCredentials([usernamePassword(credentialsId: 'dockerhub',
+                                                 usernameVariable: 'USER',
+                                                 passwordVariable: 'PASS')]) {
+                    sh "echo $PASS | docker login -u $USER --password-stdin"
+                }
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                sh "docker push ${IMAGE_NAME}:latest"
             }
         }
     }
