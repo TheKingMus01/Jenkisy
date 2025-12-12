@@ -3,17 +3,17 @@ pipeline {
 
     environment {
         IMAGE_NAME = "thekingmus/jenkins-demo"
+        KUBE_NAMESPACE = "default"
     }
 
     stages {
-
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Build Docker Image 1') {
+        stage('Build Docker Image') {
             steps {
                 script {
                     sh "docker build -t ${IMAGE_NAME}:latest ."
@@ -31,10 +31,25 @@ pipeline {
             }
         }
 
-        stage('Push Image') {
+        stage('Push Docker Image') {
             steps {
                 sh "docker push ${IMAGE_NAME}:latest"
             }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    // Set KUBECONFIG if using a local kubeconfig file
+                    sh "kubectl set image deployment/jenkins-demo jenkins-demo=${IMAGE_NAME}:latest -n ${KUBE_NAMESPACE}"
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo "Pipeline finished."
         }
     }
 }
