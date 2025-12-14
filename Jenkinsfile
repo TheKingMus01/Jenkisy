@@ -39,11 +39,20 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                script {
-                    // Set KUBECONFIG if using a local kubeconfig file
-                    sh "kubectl set image deployment/jenkins-demo jenkins-demo=${IMAGE_NAME}:latest -n ${KUBE_NAMESPACE}"
+                withCredentials([file(credentialsId: 'kubeconfig-ci', variable: 'KUBECONFIG')]) {
+                sh """
+                    kubectl set image deployment/jenkins-demo \
+                    jenkins-demo=${IMAGE_NAME}:latest \
+                    -n ${KUBE_NAMESPACE}
+                """
                 }
             }
+        }
+    }
+    
+    post {
+        always {
+            echo "Pipeline finished."
         }
     }
     
