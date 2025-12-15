@@ -45,6 +45,9 @@ pipeline {
                     jenkins-demo=${IMAGE_NAME}:latest \
                     -n ${KUBE_NAMESPACE}
                 """
+                 // Force pods to restart if needed
+                sh "kubectl rollout status deployment/jenkins-demo -n ${KUBE_NAMESPACE}"
+                sh "kubectl rollout restart deployment/jenkins-demo -n ${KUBE_NAMESPACE}"
                 }
             }
         }
